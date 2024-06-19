@@ -41,22 +41,22 @@ const createPoolBall = (position, color) => {
  * PoolBalls
  */
 const poolBalls = {
-    whiteBall: createPoolBall(new THREE.Vector3(0.3, 1, 0)),
-    yellowFilled: createPoolBall(new THREE.Vector3(-0.55, 1, 0), "#ffde0d"),
-    orangeFilled: createPoolBall(new THREE.Vector3(-0.6, 1, 0.0275), "#e36801"),
-    redStriped: createPoolBall(new THREE.Vector3(-0.6, 1, -0.0275)),
-    blueStriped: createPoolBall(new THREE.Vector3(-0.65, 1, 0.06)),
-    eightBall: createPoolBall(new THREE.Vector3(-0.65, 1, 0), "#000000"),
-    blueFilled: createPoolBall(new THREE.Vector3(-0.65, 1, -0.06), "#0050ab"),
-    purpleFilled: createPoolBall(new THREE.Vector3(-0.7, 1, 0.09), "#67009d"),
-    greenStriped: createPoolBall(new THREE.Vector3(-0.7, 1, 0.03)),
-    maroonFilled: createPoolBall(new THREE.Vector3(-0.7, 1, -0.03), "#5b0000"),
-    yellowStriped: createPoolBall(new THREE.Vector3(-0.7, 1, -0.09)),
-    purpleStriped: createPoolBall(new THREE.Vector3(-0.75, 1, 0.12)),
-    redFilled: createPoolBall(new THREE.Vector3(-0.75, 1, 0.06), "#ae0000"),
-    orangeStriped: createPoolBall(new THREE.Vector3(-0.75, 1, 0)),
-    maroonStriped: createPoolBall(new THREE.Vector3(-0.75, 1, -0.06)),
-    greenFilled: createPoolBall(new THREE.Vector3(-0.75, 1, -0.12), "#007200"),
+    whiteBall:     createPoolBall(new THREE.Vector3(0.3, 1, 0)),
+    yellowFilled:  createPoolBall(new THREE.Vector3(-0.55, 1, 0), "#ffde0d"),
+    orangeFilled:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, 0.0225), "#e36801"),
+    redStriped:    createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, -0.0225)),
+    blueStriped:   createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0.0225 * 2)),
+    eightBall:     createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0), "#000000"),
+    blueFilled:    createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, -0.0225 * 2), "#0050ab"),
+    purpleFilled:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, 0.0225 * 3), "#67009d"),
+    greenStriped:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, 0.0225)),
+    maroonFilled:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, -0.0225), "#5b0000"),
+    yellowStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, -0.0225 * 3)),
+    purpleStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0.0225 * 4)),
+    redFilled:     createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0.0225 * 2), "#ae0000"),
+    orangeStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0)),
+    maroonStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 2)),
+    greenFilled:   createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 4), "#007200"),
 };
 
 export { poolBalls, objectsToUpdate };

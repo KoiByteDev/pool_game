@@ -14,7 +14,7 @@ const ballTableContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
     tableMaterial,
     {
-        friction: 0.5,
+        friction: 0.8,
         restitution: 0.25,
     }
 );
@@ -25,7 +25,7 @@ const ballBallContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
     {
         friction: 0.15,
-        restitution: 0.8,
+        restitution: 1,
     }
 );
 world.addContactMaterial(ballBallContactMaterial);
@@ -35,7 +35,7 @@ const wallContactMaterial = new CANNON.ContactMaterial(
     wallMaterial,
     {
         friction: 0.2,
-        restitution: 0.65
+        restitution: 0.7
     }
 );
 world.addContactMaterial(wallContactMaterial);
