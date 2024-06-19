@@ -13,7 +13,7 @@ const ballHit = {};
 
 const hit = () => {
     poolBalls.whiteBall.body.applyLocalForce(
-        new CANNON.Vec3(0 - 10, 0, 0),
+        new CANNON.Vec3(-30, 0, 0),
         poolBalls.whiteBall.body.position
     );
 };
@@ -33,13 +33,14 @@ world.gravity.set(0, -9.82, 0);
 // Materials
 const ballMaterial = new CANNON.Material('ballMaterial');
 const tableMaterial = new CANNON.Material('tableMaterial');
+const wallMaterial = new CANNON.Material('wallMaterial')
 
 const ballTableContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
     tableMaterial,
     {
-        friction: 0.2,
-        restitution: 0.15,
+        friction: 0.5,
+        restitution: 0.25,
     }
 );
 world.addContactMaterial(ballTableContactMaterial);
@@ -54,13 +55,23 @@ const ballBallContactMaterial = new CANNON.ContactMaterial(
 );
 world.addContactMaterial(ballBallContactMaterial);
 
+const wallContactMaterial = new CANNON.ContactMaterial(
+    ballMaterial,
+    wallMaterial,
+    {
+        friction: 0.2,
+        restitution: 0.65
+    }
+);
+world.addContactMaterial(wallContactMaterial);
+
 const objectsToUpdate = [];
 
 /**
  * Pool Ball
  */
 const createPoolBall = (position, color) => {
-    const geometry = new THREE.SphereGeometry(0.0235, 20, 20);
+    const geometry = new THREE.SphereGeometry(0.0225, 20, 20);
     const material = new THREE.MeshStandardMaterial({
         color: color || '#ffffff',
     });
@@ -73,12 +84,14 @@ const createPoolBall = (position, color) => {
 
     const shape = new CANNON.Sphere(mesh.geometry.parameters.radius);
     const body = new CANNON.Body({
-        mass: 1,
+        mass: 2,
         position: new CANNON.Vec3(0, 3, 0),
         shape,
         material: ballMaterial,
     });
     body.position.copy(position);
+    body.linearDamping = 0.3;
+    body.angularDamping = 0.4;
     world.addBody(body);
 
     const object = { mesh, body }
@@ -90,22 +103,22 @@ const createPoolBall = (position, color) => {
  * PoolBalls
  */
 const poolBalls = {
-    whiteBall: createPoolBall(new THREE.Vector3(0.55, 1, 0)),
-    yellowFilled: createPoolBall(new THREE.Vector3(-0.3, 1, 0), "#ffde0d"),
-    orangeFilled: createPoolBall(new THREE.Vector3(-0.35, 1, 0.03), "#e36801"),
-    redStriped: createPoolBall(new THREE.Vector3(-0.35, 1, -0.03)),
-    blueStriped: createPoolBall(new THREE.Vector3(-0.4, 1, 0.06)),
-    eightBall: createPoolBall(new THREE.Vector3(-0.4, 1, 0), "#000000"),
-    blueFilled: createPoolBall(new THREE.Vector3(-0.4, 1, -0.06), "#0050ab"),
-    purpleFilled: createPoolBall(new THREE.Vector3(-0.45, 1, 0.09), "#67009d"),
-    greenStriped: createPoolBall(new THREE.Vector3(-0.45, 1, 0.03)),
-    maroonFilled: createPoolBall(new THREE.Vector3(-0.45, 1, -0.03), "#5b0000"),
-    yellowStriped: createPoolBall(new THREE.Vector3(-0.45, 1, -0.09)),
-    purpleStriped: createPoolBall(new THREE.Vector3(-0.5, 1, 0.12)),
-    redFilled: createPoolBall(new THREE.Vector3(-0.5, 1, 0.06), "#ae0000"),
-    orangeStriped: createPoolBall(new THREE.Vector3(-0.5, 1, 0)),
-    maroonStriped: createPoolBall(new THREE.Vector3(-0.5, 1, -0.06)),
-    greenFilled: createPoolBall(new THREE.Vector3(-0.5, 1, -0.12), "#007200"),
+    whiteBall: createPoolBall(new THREE.Vector3(0.3, 1, 0)),
+    yellowFilled: createPoolBall(new THREE.Vector3(-0.55, 1, 0), "#ffde0d"),
+    orangeFilled: createPoolBall(new THREE.Vector3(-0.6, 1, 0.0275), "#e36801"),
+    redStriped: createPoolBall(new THREE.Vector3(-0.6, 1, -0.0275)),
+    blueStriped: createPoolBall(new THREE.Vector3(-0.65, 1, 0.06)),
+    eightBall: createPoolBall(new THREE.Vector3(-0.65, 1, 0), "#000000"),
+    blueFilled: createPoolBall(new THREE.Vector3(-0.65, 1, -0.06), "#0050ab"),
+    purpleFilled: createPoolBall(new THREE.Vector3(-0.7, 1, 0.09), "#67009d"),
+    greenStriped: createPoolBall(new THREE.Vector3(-0.7, 1, 0.03)),
+    maroonFilled: createPoolBall(new THREE.Vector3(-0.7, 1, -0.03), "#5b0000"),
+    yellowStriped: createPoolBall(new THREE.Vector3(-0.7, 1, -0.09)),
+    purpleStriped: createPoolBall(new THREE.Vector3(-0.75, 1, 0.12)),
+    redFilled: createPoolBall(new THREE.Vector3(-0.75, 1, 0.06), "#ae0000"),
+    orangeStriped: createPoolBall(new THREE.Vector3(-0.75, 1, 0)),
+    maroonStriped: createPoolBall(new THREE.Vector3(-0.75, 1, -0.06)),
+    greenFilled: createPoolBall(new THREE.Vector3(-0.75, 1, -0.12), "#007200"),
 };
 
 /**
@@ -143,13 +156,13 @@ gltfLoader.load("./models/Table/BilliardTable.glb", (gltf) => {
         mass: 0,
         position: new CANNON.Vec3(0, 0.65 + wallHeight, wallDepth + wallThickness),
         shape: longWallShape,
-        material: tableMaterial,
+        material: wallMaterial,
     });
     const wall2 = new CANNON.Body({
         mass: 0,
         position: new CANNON.Vec3(0, 0.65 + wallHeight, -wallDepth - wallThickness),
         shape: longWallShape,
-        material: tableMaterial,
+        material: wallMaterial,
     });
 
     // Short walls
@@ -158,13 +171,13 @@ gltfLoader.load("./models/Table/BilliardTable.glb", (gltf) => {
         mass: 0,
         position: new CANNON.Vec3(wallLength + wallThickness, 0.65 + wallHeight, 0),
         shape: shortWallShape,
-        material: tableMaterial,
+        material: wallMaterial,
     });
     const wall4 = new CANNON.Body({
         mass: 0,
         position: new CANNON.Vec3(-wallLength - wallThickness, 0.65 + wallHeight, 0),
         shape: shortWallShape,
-        material: tableMaterial,
+        material: wallMaterial,
     });
 
     // Add walls to world
@@ -192,7 +205,6 @@ const tick = () => {
         object.mesh.position.copy(object.body.position);
         object.mesh.quaternion.copy(object.body.quaternion);
     }
-
     controls.update();
     renderer.render(scene, camera);
     window.requestAnimationFrame(tick);
