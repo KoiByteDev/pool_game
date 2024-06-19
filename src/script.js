@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import GUI from "lil-gui";
 import CANNON from "cannon";
-import { gltfLoader } from "./experience/utils/utils.js";
+import { gltfLoader, textureLoader } from "./experience/utils/utils.js";
 import { scene, camera, controls, renderer } from "./experience/experience.js";
 import { wallMaterial, tableMaterial, world } from "./experience/world.js";
 import { poolBalls, objectsToUpdate } from "./experience/objects/poolBalls.js";
-
 /**
  * Base
  */
@@ -208,6 +207,23 @@ gltfLoader.load("./models/Table/BilliardTable.glb", (gltf) => {
   // wallMesh6.position.copy(wall6.position);
   // scene.add(wallMesh6);
 });
+
+const floorAlphaTexture = textureLoader.load('./textures/floor/alpha.jpg',
+  () => {
+    console.log('loaded')
+  },
+  undefined,
+  (e) =>{
+    console.log('error: ' + e)
+  }
+)
+
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(4, 4),
+  new THREE.MeshStandardMaterial({ alphaMap: floorAlphaTexture, transparent: true})
+)
+floor.rotation.x = -Math.PI / 2
+scene.add(floor)
 
 /**
  * Animate
