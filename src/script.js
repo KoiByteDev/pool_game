@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import GUI from 'lil-gui';
 import CANNON from 'cannon';
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { scene, camera, controls, renderer, sizes } from './experience/experience.js';
 
 /**
  * Base
@@ -12,13 +12,9 @@ const gui = new GUI();
 const ballHit = {};
 
 const hit = () => {
-    const whiteBall = objectsToUpdate.find(
-        (object) => object.mesh.name === 'white_ball'
-    );
-
-    whiteBall.body.applyLocalForce(
+    poolBalls.whiteBall.body.applyLocalForce(
         new CANNON.Vec3(0 - 10, 0, 0),
-        whiteBall.body.position
+        poolBalls.whiteBall.body.position
     );
 };
 
@@ -26,50 +22,39 @@ ballHit.hit = hit;
 
 gui.add(ballHit, 'hit');
 
-// Canvas
-const canvas = document.querySelector('canvas.webgl');
+// Loaders
+const gltfLoader = new GLTFLoader();
 
-// Scene
-const scene = new THREE.Scene();
+// World
+const world = new CANNON.World();
+world.broadphase = new CANNON.SAPBroadphase(world);
+world.gravity.set(0, -9.82, 0);
 
-// Experience
-const experience = {
-    scene: scene,
-    cannonWorld: new CANNON.World(),
-};
+// Materials
+const ballMaterial = new CANNON.Material('ballMaterial');
+const tableMaterial = new CANNON.Material('tableMaterial');
 
-experience.cannonWorld.broadphase = new CANNON.SAPBroadphase(experience.cannonWorld);
-experience.cannonWorld.gravity.set(0, -9.82, 0);
-
-const defaultMaterial = new CANNON.Material('plastic');
-const defaultContactMaterial = new CANNON.ContactMaterial(
-    defaultMaterial,
-    defaultMaterial,
+const ballTableContactMaterial = new CANNON.ContactMaterial(
+    ballMaterial,
+    tableMaterial,
     {
-        friction: 0.5,
-        restitution: 0,
+        friction: 0.2,
+        restitution: 0.15,
     }
 );
-experience.cannonWorld.addContactMaterial(defaultContactMaterial);
-experience.cannonWorld.defaultContactMaterial = defaultContactMaterial;
+world.addContactMaterial(ballTableContactMaterial);
+
+const ballBallContactMaterial = new CANNON.ContactMaterial(
+    ballMaterial,
+    ballMaterial,
+    {
+        friction: 0.15,
+        restitution: 0.8,
+    }
+);
+world.addContactMaterial(ballBallContactMaterial);
 
 const objectsToUpdate = [];
-
-const addPoolBall = (mesh, position) => {
-    const shape = new CANNON.Sphere(mesh.geometry.parameters.radius);
-    const body = new CANNON.Body({
-        mass: 1,
-        position: new CANNON.Vec3(0, 3, 0),
-        shape,
-    });
-    body.position.copy(position);
-    experience.cannonWorld.addBody(body);
-
-    objectsToUpdate.push({
-        mesh,
-        body,
-    });
-};
 
 /**
  * Pool Ball
@@ -86,142 +71,108 @@ const createPoolBall = (position, color) => {
     mesh.position.copy(position);
     scene.add(mesh);
 
-    addPoolBall(mesh, position);
+    const shape = new CANNON.Sphere(mesh.geometry.parameters.radius);
+    const body = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(0, 3, 0),
+        shape,
+        material: ballMaterial,
+    });
+    body.position.copy(position);
+    world.addBody(body);
+
+    const object = { mesh, body }
+    objectsToUpdate.push(object);
+    return object
 };
 
 /**
- * World
+ * PoolBalls
  */
-const world = {
+const poolBalls = {
     whiteBall: createPoolBall(new THREE.Vector3(0.55, 1, 0)),
-    yellowFilled: createPoolBall(new THREE.Vector3(-0.3, 2, 0), '#ffde0d'),
-    orangeFilled: createPoolBall(new THREE.Vector3(-0.35, 2, 0.03), '#e36801'),
-    redStriped: createPoolBall(new THREE.Vector3(-0.35, 2, -0.03)),
-    blueStriped: createPoolBall(new THREE.Vector3(-0.4, 2, 0.06)),
-    eightBall: createPoolBall(new THREE.Vector3(-0.4, 2, 0), '#000000'),
-    blueFilled: createPoolBall(new THREE.Vector3(-0.4, 2, -0.06), '#0050ab'),
-    purpleFilled: createPoolBall(new THREE.Vector3(-0.45, 2, 0.09), '#67009d'),
-    greenStriped: createPoolBall(new THREE.Vector3(-0.45, 2, 0.03)),
-    maroonFilled: createPoolBall(new THREE.Vector3(-0.45, 2, -0.03), '#5b0000'),
-    yellowStriped: createPoolBall(new THREE.Vector3(-0.45, 2, -0.09)),
-    purpleStriped: createPoolBall(new THREE.Vector3(-0.5, 2, 0.12)),
-    redFilled: createPoolBall(new THREE.Vector3(-0.5, 2, 0.06), '#ae0000'),
-    orangeStriped: createPoolBall(new THREE.Vector3(-0.5, 2, 0)),
-    maroonStriped: createPoolBall(new THREE.Vector3(-0.5, 2, -0.06)),
-    greenFilled: createPoolBall(new THREE.Vector3(-0.5, 2, -0.12), '#007200'),
+    yellowFilled: createPoolBall(new THREE.Vector3(-0.3, 1, 0), "#ffde0d"),
+    orangeFilled: createPoolBall(new THREE.Vector3(-0.35, 1, 0.03), "#e36801"),
+    redStriped: createPoolBall(new THREE.Vector3(-0.35, 1, -0.03)),
+    blueStriped: createPoolBall(new THREE.Vector3(-0.4, 1, 0.06)),
+    eightBall: createPoolBall(new THREE.Vector3(-0.4, 1, 0), "#000000"),
+    blueFilled: createPoolBall(new THREE.Vector3(-0.4, 1, -0.06), "#0050ab"),
+    purpleFilled: createPoolBall(new THREE.Vector3(-0.45, 1, 0.09), "#67009d"),
+    greenStriped: createPoolBall(new THREE.Vector3(-0.45, 1, 0.03)),
+    maroonFilled: createPoolBall(new THREE.Vector3(-0.45, 1, -0.03), "#5b0000"),
+    yellowStriped: createPoolBall(new THREE.Vector3(-0.45, 1, -0.09)),
+    purpleStriped: createPoolBall(new THREE.Vector3(-0.5, 1, 0.12)),
+    redFilled: createPoolBall(new THREE.Vector3(-0.5, 1, 0.06), "#ae0000"),
+    orangeStriped: createPoolBall(new THREE.Vector3(-0.5, 1, 0)),
+    maroonStriped: createPoolBall(new THREE.Vector3(-0.5, 1, -0.06)),
+    greenFilled: createPoolBall(new THREE.Vector3(-0.5, 1, -0.12), "#007200"),
 };
 
 /**
- * Environment
+ * Pool Table
  */
-const environment = {
-    setLight: () => {
-        const light = new THREE.DirectionalLight('#ffffff', 4);
-        light.castShadow = true;
-        light.shadow.camera.far = 15;
-        light.shadow.mapSize.set(1024, 1024);
-        light.shadow.normalBias = 0.05;
-        light.position.set(3, 3, -2.25);
-        scene.add(light);
-    },
-    setAmbientLight: () => {
-        const ambientLight = new THREE.AmbientLight('#efc070', 0.05);
-        scene.add(ambientLight);
-    },
-};
+gltfLoader.load("./models/Table/BilliardTable.glb", (gltf) => {
+    console.log(gltf.scene.children);
+    const children = [...gltf.scene.children];
+    for (const child of children) {
+        child.position.y = 0.65;
+        child.position.x = 0;
+        child.position.z = 0;
+        child.receiveShadow = true;
+        scene.add(child);
+    }
 
-environment.setLight();
-environment.setAmbientLight();
+    const tableShape = new CANNON.Box(new CANNON.Vec3(1.085, 0.1, 0.55));
+    const tableBody = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(0, 0.55, 0),
+        shape: tableShape,
+        material: tableMaterial,
+    });
+    world.addBody(tableBody);
 
-/**
- * Floor
- */
-const floorShape = new CANNON.Plane();
-const floorBody = new CANNON.Body();
-floorBody.addShape(floorShape);
-floorBody.position.y = 0.65;
-floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5);
-experience.cannonWorld.addBody(floorBody);
+    // Add walls
+    const wallThickness = 0.05;
+    const wallHeight = 0.1;
+    const wallLength = 1.085;
+    const wallDepth = 0.55;
 
-const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10),
-    new THREE.MeshStandardMaterial({
-        color: '#444444',
-        metalness: 0,
-        roughness: 0.5,
-    })
-);
-floor.receiveShadow = true;
-floor.rotation.x = -Math.PI * 0.5;
-scene.add(floor);
+    // Long walls
+    const longWallShape = new CANNON.Box(new CANNON.Vec3(wallLength, wallHeight, wallThickness));
+    const wall1 = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(0, 0.65 + wallHeight, wallDepth + wallThickness),
+        shape: longWallShape,
+        material: tableMaterial,
+    });
+    const wall2 = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(0, 0.65 + wallHeight, -wallDepth - wallThickness),
+        shape: longWallShape,
+        material: tableMaterial,
+    });
 
-/**
- * Lights
- */
-const ambientLight = new THREE.AmbientLight(0xffffff, 2.4);
-scene.add(ambientLight);
+    // Short walls
+    const shortWallShape = new CANNON.Box(new CANNON.Vec3(wallThickness, wallHeight, wallDepth));
+    const wall3 = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(wallLength + wallThickness, 0.65 + wallHeight, 0),
+        shape: shortWallShape,
+        material: tableMaterial,
+    });
+    const wall4 = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(-wallLength - wallThickness, 0.65 + wallHeight, 0),
+        shape: shortWallShape,
+        material: tableMaterial,
+    });
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
-directionalLight.castShadow = true;
-directionalLight.shadow.mapSize.set(1024, 1024);
-directionalLight.shadow.camera.far = 15;
-directionalLight.shadow.camera.left = -7;
-directionalLight.shadow.camera.top = 7;
-directionalLight.shadow.camera.right = 7;
-directionalLight.shadow.camera.bottom = -7;
-directionalLight.position.set(5, 5, 5);
-scene.add(directionalLight);
-
-/**
- * Sizes
- */
-const sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-};
-
-window.addEventListener('resize', () => {
-    // Update sizes
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
-
-    // Update camera
-    camera.aspect = sizes.width / sizes.height;
-    camera.updateProjectionMatrix();
-
-    // Update renderer
-    renderer.setSize(sizes.width, sizes.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Add walls to world
+    world.addBody(wall1);
+    world.addBody(wall2);
+    world.addBody(wall3);
+    world.addBody(wall4);
 });
-
-/**
- * Camera
- */
-// Base camera
-const camera = new THREE.PerspectiveCamera(
-    75,
-    sizes.width / sizes.height,
-    0.1,
-    100
-);
-camera.position.set(2, 2, 2);
-scene.add(camera);
-
-// Controls
-const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 0.75, 0);
-controls.enableDamping = true;
-
-/**
- * Renderer
- */
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-});
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.setSize(sizes.width, sizes.height);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 /**
  * Animate
@@ -235,20 +186,15 @@ const tick = () => {
     previousTime = elapsedTime;
 
     // Update Physics World
-    experience.cannonWorld.step(1 / 60, deltaTime, 3);
+    world.step(1 / 60, deltaTime, 3);
 
     for (const object of objectsToUpdate) {
         object.mesh.position.copy(object.body.position);
         object.mesh.quaternion.copy(object.body.quaternion);
     }
 
-    // Update controls
     controls.update();
-
-    // Render
     renderer.render(scene, camera);
-
-    // Call tick again on the next frame
     window.requestAnimationFrame(tick);
 };
 
