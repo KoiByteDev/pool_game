@@ -55,8 +55,8 @@ renderer.shadowMap.enabled = true;
 /**
  * Lights
  */
-const directionalLight = new THREE.DirectionalLight(0xffffff, 7.5);
-directionalLight.position.set(2, 2, 1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
+directionalLight.position.set(4, 4, 1);
 scene.add(directionalLight);
 
 directionalLight.castShadow = true;

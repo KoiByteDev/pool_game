@@ -34,8 +34,8 @@ const wallContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
     wallMaterial,
     {
-        friction: 0.2,
-        restitution: 0.7
+        friction: 0.8,
+        restitution: 0.8
     }
 );
 world.addContactMaterial(wallContactMaterial);

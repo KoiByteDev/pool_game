@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { scene } from '../experience';
 import { ballMaterial, world } from '../world';
+import { ballTextures } from '../utils/utils';
 import CANNON from 'cannon';
 
 const objectsToUpdate = [];
@@ -8,10 +9,10 @@ const objectsToUpdate = [];
 /**
  * Pool Ball
  */
-const createPoolBall = (position, color) => {
+const createPoolBall = (position, texture) => {
     const geometry = new THREE.SphereGeometry(0.0225, 20, 20);
     const material = new THREE.MeshStandardMaterial({
-        color: color || '#ffffff',
+        map: texture
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -41,22 +42,22 @@ const createPoolBall = (position, color) => {
  * PoolBalls
  */
 const poolBalls = {
-    whiteBall:     createPoolBall(new THREE.Vector3(0.3, 1, 0)),
-    yellowFilled:  createPoolBall(new THREE.Vector3(-0.55, 1, 0), "#ffde0d"),
-    orangeFilled:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, 0.0225), "#e36801"),
-    redStriped:    createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, -0.0225)),
-    blueStriped:   createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0.0225 * 2)),
-    eightBall:     createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0), "#000000"),
-    blueFilled:    createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, -0.0225 * 2), "#0050ab"),
-    purpleFilled:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, 0.0225 * 3), "#67009d"),
-    greenStriped:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, 0.0225)),
-    maroonFilled:  createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, -0.0225), "#5b0000"),
-    yellowStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, -0.0225 * 3)),
-    purpleStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0.0225 * 4)),
-    redFilled:     createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0.0225 * 2), "#ae0000"),
-    orangeStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0)),
-    maroonStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 2)),
-    greenFilled:   createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 4), "#007200"),
-};
+    whiteBall: createPoolBall(new THREE.Vector3(0.3, 1, 0), null),
+    yellowFilled: createPoolBall(new THREE.Vector3(-0.55, 1, 0), ballTextures.yellowFilled),
+    orangeFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, 0.0225), ballTextures.orangeFilled), 
+    redStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, -0.0225), ballTextures.redStriped), 
+    blueStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0.0225 * 2), ballTextures.blueStriped), 
+    eightBall: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0), ballTextures.eightBall), 
+    blueFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, -0.0225 * 2), ballTextures.blueFilled), 
+    purpleFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, 0.0225 * 3), ballTextures.purpleFilled), 
+    greenStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, 0.0225), ballTextures.greenStriped), // Use texture instead of
+    maroonFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, -0.0225), ballTextures.maroonFilled), 
+    yellowStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 3), 1, -0.0225 * 3), ballTextures.yellowStriped), 
+    purpleStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0.0225 * 4), ballTextures.purpleStriped), 
+    redFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0.0225 * 2), ballTextures.redFilled), 
+    orangeStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, 0), ballTextures.orangeStriped), 
+    maroonStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 2), ballTextures.maroonStriped), 
+    greenFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 4), ballTextures.greenFilled), 
+  };
 
 export { poolBalls, objectsToUpdate };
