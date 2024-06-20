@@ -7,6 +7,7 @@ import { wallMaterial, tableMaterial, world } from "./experience/world.js";
 import { poolBalls, objectsToUpdate } from "./experience/objects/poolBalls.js";
 import { floor } from "./experience/objects/floor.js";
 import { createPoolTable } from "./experience/objects/poolTable.js";
+import { createPoolCue } from "./experience/objects/poolCue.js";
 
 /**
  * Base
@@ -17,6 +18,9 @@ const ballHit = {};
 const indexes = {};
 indexes.angle = 0;
 indexes.force = 500;
+
+createPoolTable(gltfLoader, scene, world, tableMaterial, wallMaterial);
+const cue = await createPoolCue(gltfLoader);
 
 const resetWhite = () => {
   poolBalls.whiteBall.body.position.set(0.3, 1, 0),
@@ -30,10 +34,12 @@ const hit = () => {
   const valX = Math.cos(angleInRadians) * -indexes.force;
   const valZ = Math.sin(angleInRadians) * -indexes.force;
 
-  poolBalls.whiteBall.body.applyForce(
-    new CANNON.Vec3(valX, 0, valZ),
-    poolBalls.whiteBall.body.position
-  );
+  // poolBalls.whiteBall.body.applyForce(
+  //   new CANNON.Vec3(valX, 0, valZ),
+  //   poolBalls.whiteBall.body.position
+  // );
+
+  cue.position.x -= 0.05;
 };
 
 ballHit.hit = hit;
@@ -43,8 +49,6 @@ gui.add(ballHit, "hit");
 gui.add(ballHit, "resetWhite");
 gui.add(indexes, "angle").min(0).max(360).step(1);
 gui.add(indexes, "force").min(10).max(1000).step(10);
-
-createPoolTable(gltfLoader, scene, world, tableMaterial, wallMaterial);
 
 scene.add(floor);
 

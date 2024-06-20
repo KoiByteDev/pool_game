@@ -50,18 +50,22 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+renderer.shadowMap.type = THREE.VSMShadowMap
 renderer.shadowMap.enabled = true;
 
 /**
  * Lights
  */
 const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
-directionalLight.position.set(4, 4, 1);
+directionalLight.position.set(4, 4, 4);
 scene.add(directionalLight);
 
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+scene.add(ambientLight)
+
 directionalLight.castShadow = true;
-directionalLight.shadow.mapSize.set(1024, 1024);
-directionalLight.shadow.camera.far = 5;
+directionalLight.shadow.mapSize.set(768, 768);
+directionalLight.shadow.camera.far = 15;
 directionalLight.shadow.camera.left = -2;
 directionalLight.shadow.camera.top = 2;
 directionalLight.shadow.camera.right = 2;

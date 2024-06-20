@@ -36,9 +36,10 @@ const floor = new THREE.Mesh(
     metalnessMap: floorARMTexture,
     displacementMap: floorDispTexture,
     displacementScale: 0.025,
-    displacementBias: -0.025
-  })
+    displacementBias: -0.025,
+  }),
 );
+floor.receiveShadow = true
 floor.rotation.x = -Math.PI / 2;
 floor.rotation.z = Math.PI / 2;
 export { floor };

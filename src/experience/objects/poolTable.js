@@ -8,15 +8,18 @@ const createPoolTable = (
   tableMaterial,
   wallMaterial
 ) => {
-  gltfLoader.load("./models/Table/BilliardTable.glb", (gltf) => {
+  gltfLoader.load("./models/Table/billiardTable.glb", (gltf) => {
     const children = [...gltf.scene.children];
     for (const child of children) {
       child.position.y = 0.65;
       child.position.x = 0;
       child.position.z = 0;
-      child.receiveShadow = true;
-      scene.add(child);
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
     }
+    scene.add(...children)
 
     const tableShape = new CANNON.Box(new CANNON.Vec3(1.085, 0.1, 0.55));
     const tableBody = new CANNON.Body({
