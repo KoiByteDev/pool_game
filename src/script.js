@@ -16,7 +16,7 @@ import { createPoolCue } from "./experience/objects/poolCue.js";
 const gui = new GUI();
 const ballHit = {};
 const indexes = {};
-indexes.angle = 0;
+indexes.angle = 180;
 indexes.force = 500;
 
 createPoolTable(gltfLoader, scene, world, tableMaterial, wallMaterial);
@@ -31,15 +31,15 @@ const resetWhite = () => {
 const hit = () => {
   const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
 
-  const valX = Math.cos(angleInRadians) * -indexes.force;
-  const valZ = Math.sin(angleInRadians) * -indexes.force;
+  const valX = Math.cos(angleInRadians) * indexes.force;
+  const valZ = Math.sin(angleInRadians) * indexes.force;
 
-  // poolBalls.whiteBall.body.applyForce(
-  //   new CANNON.Vec3(valX, 0, valZ),
-  //   poolBalls.whiteBall.body.position
-  // );
+  poolBalls.whiteBall.body.applyForce(
+    new CANNON.Vec3(valX, 0, valZ),
+    poolBalls.whiteBall.body.position
+  );
 
-  cue.position.x -= 0.05;
+  // cue.position.x -= 0.05;
 };
 
 ballHit.hit = hit;
@@ -51,6 +51,12 @@ gui.add(indexes, "angle").min(0).max(360).step(1);
 gui.add(indexes, "force").min(10).max(1000).step(10);
 
 scene.add(floor);
+
+window.addEventListener('keypress', (e) => {
+  if (e.code === 'space') {
+    console.log('space')
+  }
+})
 
 /**
  * Animate
