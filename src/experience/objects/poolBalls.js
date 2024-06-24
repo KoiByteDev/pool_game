@@ -3,8 +3,7 @@ import { scene } from '../experience';
 import { ballMaterial, world } from '../world';
 import { ballTextures } from '../utils/utils';
 import CANNON from 'cannon';
-
-const objectsToUpdate = [];
+import { objectsToUpdate } from '../world';
 
 /**
  * Pool Ball

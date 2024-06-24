@@ -2,35 +2,48 @@ import * as THREE from "three";
 import { scene } from "../experience";
 import { wallMaterial, world } from "../world";
 import CANNON from "cannon";
+import { objectsToUpdate } from "../world";
 
 const createPoolCue = (gltfLoader) => {
   return new Promise((resolve) => {
     gltfLoader.load("./models/Cue/poolCue.glb", (gltf) => {
       const cueModel = gltf.scene;
-      cueModel.position.y = 0.73;
-      cueModel.position.x = 1.5;
-      cueModel.rotation.z = Math.PI / 2 + 0.05;
+      cueModel.position.y = 0.72;
+      cueModel.castShadow = true;
       scene.add(cueModel);
 
-      const tipGeometry = new THREE.SphereGeometry(0.05, 20, 20); // Increased radius
-      const tipMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red material
-      const tipMesh = new THREE.Mesh(tipGeometry, tipMaterial);
+      const tipGeometry = new THREE.SphereGeometry(0.025, 20, 20);
+      const tipMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const mesh = new THREE.Mesh(tipGeometry, tipMaterial);
+      mesh.position.copy(
+        new THREE.Vector3(
+          cueModel.position.x,
+          cueModel.position.y,
+          cueModel.position.z
+        )
+      );
+      scene.add(mesh);
 
-      scene.add(tipMesh);
-
-      const tipShape = new CANNON.Sphere(0.1, 20, 20); // Adjust if needed
-      const tipBody = new CANNON.Body({
+      const tipShape = new CANNON.Sphere(0.025, 20, 20);
+      const body = new CANNON.Body({
         mass: 0,
         position: new CANNON.Vec3(0, 0, 0),
         shape: tipShape,
         material: wallMaterial,
       });
+      body.position.copy(
+        new THREE.Vector3(
+          cueModel.position.x,
+          cueModel.position.y,
+          cueModel.position.z
+        )
+      )
+      world.addBody(body);
+      console.log(body)
 
-      tipBody.position.copy(tipMesh.position);
-
-      world.addBody(tipBody);
-
-      resolve(cueModel, tipMesh);
+      const object = { mesh, body }
+      objectsToUpdate.push(object)
+      resolve({ cueModel, mesh, body });
     });
   });
 };

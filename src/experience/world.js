@@ -5,6 +5,8 @@ const world = new CANNON.World();
 world.broadphase = new CANNON.SAPBroadphase(world);
 world.gravity.set(0, -9.82, 0);
 
+const objectsToUpdate = [];
+
 // Materials
 const ballMaterial = new CANNON.Material('ballMaterial');
 const tableMaterial = new CANNON.Material('tableMaterial');
@@ -25,7 +27,7 @@ const ballBallContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
     {
         friction: 0.15,
-        restitution: 1,
+        restitution: 0.925,
     }
 );
 world.addContactMaterial(ballBallContactMaterial);
@@ -40,4 +42,4 @@ const wallContactMaterial = new CANNON.ContactMaterial(
 );
 world.addContactMaterial(wallContactMaterial);
 
-export { wallMaterial, ballMaterial, tableMaterial, world };
+export { wallMaterial, ballMaterial, tableMaterial, world, objectsToUpdate };
