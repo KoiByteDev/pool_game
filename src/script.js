@@ -8,6 +8,7 @@ import { poolBalls, objectsToUpdate } from "./experience/objects/poolBalls.js";
 import { floor } from "./experience/objects/floor.js";
 import { createPoolTable } from "./experience/objects/poolTable.js";
 import { createPoolCue } from "./experience/objects/poolCue.js";
+import { gsap } from "gsap/gsap-core";
 
 /**
  * Base
@@ -20,8 +21,7 @@ indexes.angle = 180;
 indexes.force = 500;
 
 createPoolTable(gltfLoader, scene, world, tableMaterial, wallMaterial);
-const { cueModel, tipMesh, tipBody } = await createPoolCue(gltfLoader);
-console.log(tipBody)
+const { cueModel } = await createPoolCue(gltfLoader);
 
 const resetWhite = () => {
   poolBalls.whiteBall.body.position.set(0.3, 1, 0),
@@ -31,26 +31,77 @@ const resetWhite = () => {
 
 ballHit.resetWhite = resetWhite;
 
-window.addEventListener("keypress", (e) => {
-  if (e.code === "Space") {
-    const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
+const GameState = {
+  IDLE: 'idle',
+  HIT_BALL: 'hit_ball',
+  MOVE_CUE_UP: 'move_cue_up',
+  HOLD: 'hold'
+}
 
-    const valX = Math.cos(angleInRadians) * indexes.force;
-    const valZ = Math.sin(angleInRadians) * indexes.force;
-    poolBalls.whiteBall.body.applyForce(
-      new CANNON.Vec3(valX, 0, valZ),
-      poolBalls.whiteBall.body.position
-    );
+let currentState = GameState.IDLE;
+
+window.addEventListener("keypress", (e) => {
+  if (e.code === "Space" && currentState === GameState.IDLE) {
+    const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
+    currentState = GameState.HIT_BALL;
+    console.log( 80 / indexes.force)
+    gsap.to(cueModel.position, {
+      duration: 1,
+      x: poolBalls.whiteBall.body.position.x - Math.cos(angleInRadians) * 1.1,
+      z: poolBalls.whiteBall.body.position.z - Math.sin(angleInRadians) * 1.1,
+      onComplete: () => {
+        gsap.to(cueModel.position, {
+          duration: 80 / (indexes.force),
+          x: poolBalls.whiteBall.body.position.x - Math.cos(angleInRadians) * 0.95,
+          z: poolBalls.whiteBall.body.position.z - Math.sin(angleInRadians) * 0.95,
+          onComplete: () => {
+            const forceX = Math.cos(angleInRadians) * indexes.force;
+            const forceZ = Math.sin(angleInRadians) * indexes.force;
+            poolBalls.whiteBall.body.applyForce(
+              new CANNON.Vec3(forceX, 0, forceZ),
+              poolBalls.whiteBall.body.position
+            );
+            gsap.to(cueModel.position, {
+              duration: 1 ,
+              y: cueModel.position.y + 1,
+              onComplete: () => {
+                currentState = GameState.HOLD;
+              },
+            });
+          },
+        });
+      },
+    });
   }
 });
 
 window.addEventListener("keydown", (e) => {
-  if (e.code === "KeyA") {
-    indexes.angle += 1;
-    console.log(indexes.angle)
-  } else if (e.code === "KeyD") {
-    indexes.angle -= 1;
-    console.log(indexes.angle)
+  if (currentState === GameState.IDLE) {
+    console.log(e.code)
+    if (e.code === "KeyA") {
+      indexes.angle += 1;
+      console.log(indexes.angle)
+    } else if (e.code === "KeyD") {
+      indexes.angle -= 1;
+      console.log(indexes.angle)
+    }
+  }
+  if (e.code === "Enter" && currentState === GameState.HOLD) {
+    const angleInRadians = (Math.PI / 180) * indexes.angle
+    const distanceFromBall = 1.05;
+    const whiteBallPosition = poolBalls.whiteBall.body.position;
+    const cueX = whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
+    const cueZ = whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
+    gsap.to(cueModel.position, {
+      duration: 0.5,
+      x: cueX,
+      y: 0.72,
+      z: cueZ,
+      onComplete: () => {
+        currentState = GameState.IDLE;
+      }
+    })
+    console.log(currentState)
   }
 });
 
@@ -58,12 +109,12 @@ window.addEventListener("keydown", (e) => {
 
 const updateCuePosition = () => {
   const angleInRadians = (Math.PI / 180) * indexes.angle
-  const distanceFromBall = 1;
+  const distanceFromBall = 1.05;
   const whiteBallPosition = poolBalls.whiteBall.body.position;
   const cueX = whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
   const cueZ = whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
   cueModel.position.set(cueX, cueModel.position.y, cueZ);
-  cueModel.lookAt(new THREE.Vector3(whiteBallPosition.x, whiteBallPosition.y, whiteBallPosition.z));
+  cueModel.lookAt(new THREE.Vector3(whiteBallPosition.x, whiteBallPosition.y * 0.99, whiteBallPosition.z));
 }
 
 gui.add(ballHit, "resetWhite");
@@ -72,9 +123,9 @@ gui.add(indexes, "force").min(10).max(1000).step(10);
 
 scene.add(floor);
 
-const axesHelper = new THREE.AxesHelper();
-axesHelper.position.y += 1;
-scene.add(axesHelper);
+// const axesHelper = new THREE.AxesHelper();
+// axesHelper.position.y += 1;
+// scene.add(axesHelper);
 
 /**
  * Animate
@@ -95,7 +146,9 @@ const tick = () => {
     object.mesh.quaternion.copy(object.body.quaternion);
   }
 
-  updateCuePosition();
+  if (currentState === GameState.IDLE) {
+    updateCuePosition();
+  } 
 
   controls.update();
   renderer.render(scene, camera);

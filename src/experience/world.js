@@ -9,6 +9,7 @@ const objectsToUpdate = [];
 
 // Materials
 const ballMaterial = new CANNON.Material('ballMaterial');
+const tipMaterial = new CANNON.Material('tipMaterial');
 const tableMaterial = new CANNON.Material('tableMaterial');
 const wallMaterial = new CANNON.Material('wallMaterial')
 
@@ -31,6 +32,15 @@ const ballBallContactMaterial = new CANNON.ContactMaterial(
     }
 );
 world.addContactMaterial(ballBallContactMaterial);
+
+const tipBallContactMaterial = new CANNON.ContactMaterial(
+    ballMaterial,
+    tipMaterial,
+    {
+        friction: 0.7,
+        restitution: 0.7
+    }
+)
 
 const wallContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
