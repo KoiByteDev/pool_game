@@ -25,6 +25,11 @@ floorARMTexture.wrapT = THREE.RepeatWrapping;
 floorNormalTexture.wrapT = THREE.RepeatWrapping;
 floorDispTexture.wrapT = THREE.RepeatWrapping;
 
+floorColorTexture.anisotropy = 8;
+floorARMTexture.anisotropy = 8;
+floorNormalTexture.anisotropy = 8;
+floorDispTexture.anisotropy = 8;
+
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(4, 4, 100, 100),
   new THREE.MeshStandardMaterial({

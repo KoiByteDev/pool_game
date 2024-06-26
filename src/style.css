@@ -17,3 +17,46 @@ body
     left: 0;
     outline: none;
 }
+
+#overlay {
+    color: white;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    left: 50%;
+}
+
+#options {
+    display: flex;
+    flex-direction: row;
+}
+
+.button {
+    margin: 8px;
+    padding: 8px;
+}
+
+#playButton {
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: green;
+    border: none;
+    border-radius: 12px;
+}
+
+#playButton:hover {
+    background-color: greenyellow;
+}
+
+#sandboxButton {
+    background-color: yellow;
+    border: none;
+    border-radius: 12px;
+}
+
+#sandboxButton:hover {
+    background-color: lightgoldenrodyellow;
+}
