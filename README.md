@@ -2,6 +2,8 @@
 
 This project simulates a pool table with realistic ball physics using Three.js for 3D rendering and Cannon.js for physics. The project includes functionalities for cue control, ball collisions, and ball-pocket interactions.
 
+![Project Screenshot](static/screenshot/image.png)
+
 ## Table of Contents
 
 - [Demo](#demo)
