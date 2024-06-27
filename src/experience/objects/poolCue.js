@@ -3,21 +3,19 @@ import { scene } from "../experience";
 import { wallMaterial, world } from "../world";
 import CANNON from "cannon";
 import { objectsToUpdate } from "../world";
+import { gltfLoader } from "../utils/utils";
 
-const createPoolCue = (gltfLoader, position) => {
-  return new Promise((resolve) => {
-    gltfLoader.load("./models/Cue/poolCue.glb", (gltf) => {
-      const cueModel = gltf.scene;
-      cueModel.position.y = 0.70;
-      cueModel.position.x = 0.75;
-      cueModel.position.z = -0.5;
-      cueModel.rotation.y = Math.PI / 4;
-      cueModel.castShadow = true;
-      scene.add(cueModel);
+let cueModel;
 
-      resolve({ cueModel });
-    });
-  });
-};
+gltfLoader.load("./models/Cue/poolCue.glb", (gltf) => {
+  const loadedModel = gltf.scene;
+  loadedModel.position.y = 0.7;
+  loadedModel.position.x = 0.75;
+  loadedModel.position.z = -0.5;
+  loadedModel.rotation.y = Math.PI / 4;
+  loadedModel.castShadow = true;
+  scene.add(loadedModel);
+  cueModel = loadedModel
+});
 
-export { createPoolCue };
+export { cueModel };

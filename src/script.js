@@ -7,7 +7,7 @@ import { wallMaterial, tableMaterial, world } from "./experience/world.js";
 import { poolBalls, objectsToUpdate } from "./experience/objects/poolBalls.js";
 import { floor } from "./experience/objects/floor.js";
 import { createPoolTable } from "./experience/objects/poolTable.js";
-import { createPoolCue } from "./experience/objects/poolCue.js";
+import { cueModel } from "./experience/objects/poolCue.js";
 import { gsap } from "gsap/gsap-core";
 
 /**
@@ -20,7 +20,6 @@ indexes.angle = 180;
 indexes.force = 500;
 
 createPoolTable(gltfLoader, scene, world, tableMaterial, wallMaterial);
-const { cueModel } = await createPoolCue(gltfLoader);
 
 const resetWhite = () => {
   poolBalls.whiteBall.body.position.set(0.3, 1, 0);
