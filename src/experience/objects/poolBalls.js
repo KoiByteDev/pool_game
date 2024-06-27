@@ -28,8 +28,8 @@ const createPoolBall = (position, texture) => {
         material: ballMaterial,
     });
     body.position.copy(position);
-    body.linearDamping = 0.3;
-    body.angularDamping = 0.4;
+    body.linearDamping = 0.4;
+    body.angularDamping = 0.6;
     world.addBody(body);
 
     const object = { mesh, body }
