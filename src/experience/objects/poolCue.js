@@ -1,8 +1,4 @@
-import * as THREE from "three";
 import { scene } from "../experience";
-import { wallMaterial, world } from "../world";
-import CANNON from "cannon";
-import { objectsToUpdate } from "../world";
 import { gltfLoader } from "../utils/utils";
 
 let cueModel;

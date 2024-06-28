@@ -10,10 +10,6 @@ import { createPoolTable } from "./experience/objects/poolTable.js";
 import { cueModel } from "./experience/objects/poolCue.js";
 import { gsap } from "gsap/gsap-core";
 
-/**
- * Base
- */
-const gui = new GUI();
 const ballHit = {};
 const indexes = {};
 indexes.angle = 180;
@@ -33,25 +29,39 @@ ballHit.resetWhite = resetWhite;
  * Game States
  */
 const GameState = {
-  START_SCREEN: 'start_screen',
-  TWO_PLAYER_IDLE: 'two_player_idle',
-  TWO_PLAYER_HIT: 'two_player_hit',
-  TWO_PLAYER_BALL_MOVING: 'two_player_ball_moving',
-  SANDBOX_IDLE: 'sandbox_idle',
-  SANDBOX_HIT: 'sandbox_hit',
-  SANDBOX_BALL_MOVING: 'sandbox_ball_moving'
+  START_SCREEN: "start_screen",
+  TWO_PLAYER_IDLE: "two_player_idle",
+  TWO_PLAYER_HIT: "two_player_hit",
+  TWO_PLAYER_BALL_MOVING: "two_player_ball_moving",
+  SANDBOX_IDLE: "sandbox_idle",
+  SANDBOX_HIT: "sandbox_hit",
+  SANDBOX_BALL_MOVING: "sandbox_ball_moving",
 };
 
+const ScoreState = {
+  NO_SCORE: "no_score",
+  SCORE_P1_STRIPE: "pi_stripe",
+  SCORE_P1_FILLED: "p1_filled"
+}
+
 let currentState = GameState.START_SCREEN;
+let currentScore = GameState.NO_SCORE;
 
 /**
  * Event Listeners
  */
 window.addEventListener("keypress", (e) => {
-  if ((currentState === GameState.TWO_PLAYER_IDLE || currentState === GameState.SANDBOX_IDLE) && e.code === "Space") {
+  if (
+    (currentState === GameState.TWO_PLAYER_IDLE ||
+      currentState === GameState.SANDBOX_IDLE) &&
+    e.code === "Space"
+  ) {
     const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
-    currentState = (currentState === GameState.TWO_PLAYER_IDLE) ? GameState.TWO_PLAYER_HIT : GameState.SANDBOX_HIT;
-    
+    currentState =
+      currentState === GameState.TWO_PLAYER_IDLE
+        ? GameState.TWO_PLAYER_HIT
+        : GameState.SANDBOX_HIT;
+
     gsap.to(cueModel.position, {
       duration: 1,
       x: poolBalls.whiteBall.body.position.x - Math.cos(angleInRadians) * 1.1,
@@ -59,8 +69,12 @@ window.addEventListener("keypress", (e) => {
       onComplete: () => {
         gsap.to(cueModel.position, {
           duration: 80 / indexes.force,
-          x: poolBalls.whiteBall.body.position.x - Math.cos(angleInRadians) * 0.95,
-          z: poolBalls.whiteBall.body.position.z - Math.sin(angleInRadians) * 0.95,
+          x:
+            poolBalls.whiteBall.body.position.x -
+            Math.cos(angleInRadians) * 0.95,
+          z:
+            poolBalls.whiteBall.body.position.z -
+            Math.sin(angleInRadians) * 0.95,
           onComplete: () => {
             const forceX = Math.cos(angleInRadians) * indexes.force;
             const forceZ = Math.sin(angleInRadians) * indexes.force;
@@ -68,12 +82,15 @@ window.addEventListener("keypress", (e) => {
               new CANNON.Vec3(forceX, 0, forceZ),
               poolBalls.whiteBall.body.position
             );
-            
+
             gsap.to(cueModel.position, {
               duration: 1,
               y: cueModel.position.y + 1,
               onComplete: () => {
-                currentState = (currentState === GameState.TWO_PLAYER_HIT) ? GameState.TWO_PLAYER_BALL_MOVING : GameState.SANDBOX_BALL_MOVING;
+                currentState =
+                  currentState === GameState.TWO_PLAYER_HIT
+                    ? GameState.TWO_PLAYER_BALL_MOVING
+                    : GameState.SANDBOX_BALL_MOVING;
               },
             });
           },
@@ -84,14 +101,21 @@ window.addEventListener("keypress", (e) => {
 });
 
 window.addEventListener("keydown", (e) => {
-  if (currentState === GameState.TWO_PLAYER_IDLE || currentState === GameState.SANDBOX_IDLE) {
+  if (
+    currentState === GameState.TWO_PLAYER_IDLE ||
+    currentState === GameState.SANDBOX_IDLE
+  ) {
     if (e.code === "KeyA") {
       indexes.angle += 1;
     } else if (e.code === "KeyD") {
       indexes.angle -= 1;
     }
   }
-  if (e.code === "Enter" && (currentState === GameState.TWO_PLAYER_BALL_MOVING || currentState === GameState.SANDBOX_BALL_MOVING)) {
+  if (
+    e.code === "Enter" &&
+    (currentState === GameState.TWO_PLAYER_BALL_MOVING ||
+      currentState === GameState.SANDBOX_BALL_MOVING)
+  ) {
     resetGameState();
   }
 });
@@ -99,9 +123,12 @@ window.addEventListener("keydown", (e) => {
 /**
  * GUI Setup
  */
-gui.add(ballHit, "resetWhite");
-gui.add(indexes, "angle").min(0).max(360).step(1);
-gui.add(indexes, "force").min(10).max(1000).step(10);
+const gui = new GUI();
+if (currentState === GameState.SANDBOX_IDLE) {
+  gui.add(ballHit, "resetWhite");
+  gui.add(indexes, "angle").min(0).max(360).step(1);
+  gui.add(indexes, "force").min(10).max(1000).step(10);
+}
 
 scene.add(floor);
 
@@ -115,17 +142,17 @@ const updateOverlayVisibility = () => {
   } else {
     overlay.style.display = "none";
   }
-}
+};
 
 const playButton = document.getElementById("playButton");
 const sandboxButton = document.getElementById("sandboxButton");
 
-playButton.addEventListener('click', () => {
+playButton.addEventListener("click", () => {
   currentState = GameState.TWO_PLAYER_IDLE;
   updateOverlayVisibility();
 });
 
-sandboxButton.addEventListener('click', () => {
+sandboxButton.addEventListener("click", () => {
   currentState = GameState.SANDBOX_IDLE;
   updateOverlayVisibility();
 });
@@ -137,18 +164,28 @@ const updateCuePosition = () => {
   const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
   const distanceFromBall = 1.05;
   const whiteBallPosition = poolBalls.whiteBall.body.position;
-  const cueX = whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
-  const cueZ = whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
+  const cueX =
+    whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
+  const cueZ =
+    whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
   cueModel.position.set(cueX, cueModel.position.y, cueZ);
-  cueModel.lookAt(new THREE.Vector3(whiteBallPosition.x, whiteBallPosition.y * 0.99, whiteBallPosition.z));
+  cueModel.lookAt(
+    new THREE.Vector3(
+      whiteBallPosition.x,
+      whiteBallPosition.y * 0.99,
+      whiteBallPosition.z
+    )
+  );
 };
 
 const resetGameState = () => {
   const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
   const distanceFromBall = 1.05;
   const whiteBallPosition = poolBalls.whiteBall.body.position;
-  const cueX = whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
-  const cueZ = whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
+  const cueX =
+    whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
+  const cueZ =
+    whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
 
   gsap.to(cueModel.position, {
     duration: 0.5,
@@ -156,10 +193,29 @@ const resetGameState = () => {
     y: 0.72,
     z: cueZ,
     onComplete: () => {
-      currentState = (currentState === GameState.TWO_PLAYER_BALL_MOVING) ? GameState.TWO_PLAYER_IDLE : GameState.SANDBOX_IDLE;
-    }
+      currentState =
+        currentState === GameState.TWO_PLAYER_BALL_MOVING
+          ? GameState.TWO_PLAYER_IDLE
+          : GameState.SANDBOX_IDLE;
+    },
   });
 };
+
+const checkScore = () => {
+  if (
+    currentState === GameState.TWO_PLAYER_HIT || 
+    currentState === GameState.TWO_PLAYER_BALL_MOVING &&
+    currentScore === ScoreState.NO_SCORE
+  ) {
+    console.log("poya")
+  }
+}
+
+const isWhiteBallMoving = () => {
+  const velocity = poolBalls.whiteBall.body.velocity;
+  return velocity.length() > 0.01;  // Adjust the threshold as needed
+};
+
 
 /**
  * Animation Loop
@@ -179,11 +235,21 @@ const tick = () => {
     object.mesh.quaternion.copy(object.body.quaternion);
   }
 
-  if (currentState === GameState.TWO_PLAYER_IDLE || currentState === GameState.SANDBOX_IDLE) {
+  if (
+    currentState === GameState.TWO_PLAYER_IDLE ||
+    currentState === GameState.SANDBOX_IDLE
+  ) {
     updateCuePosition();
   }
 
-  
+  if (
+    currentState === GameState.TWO_PLAYER_BALL_MOVING &&
+    !isWhiteBallMoving()
+  ) {
+    currentState = GameState.TWO_PLAYER_IDLE;
+  }
+
+  checkScore();
 
   controls.update();
   renderer.render(scene, camera);
