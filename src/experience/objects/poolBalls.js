@@ -47,7 +47,6 @@ const FilledPoolBalls = {
     greenFilled: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 4), 1, -0.0225 * 4), ballTextures.greenFilled),
 };
 
-
 const StripedPoolBalls = {
     redStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75), 1, -0.0225), ballTextures.redStriped),
     blueStriped: createPoolBall(new THREE.Vector3(-0.55 - (0.0225 * 1.75 * 2), 1, 0.0225 * 2), ballTextures.blueStriped),
@@ -65,4 +64,4 @@ const poolBalls = {
     ...StripedPoolBalls
 };
 
-export { poolBalls, objectsToUpdate };
+export { StripedPoolBalls, FilledPoolBalls, poolBalls, objectsToUpdate };

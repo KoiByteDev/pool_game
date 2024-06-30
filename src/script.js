@@ -4,7 +4,12 @@ import CANNON from "cannon";
 import { gltfLoader, textureLoader } from "./experience/utils/utils.js";
 import { scene, camera, controls, renderer } from "./experience/experience.js";
 import { wallMaterial, tableMaterial, world } from "./experience/world.js";
-import { poolBalls, objectsToUpdate } from "./experience/objects/poolBalls.js";
+import {
+  poolBalls,
+  objectsToUpdate,
+  StripedPoolBalls,
+  FilledPoolBalls,
+} from "./experience/objects/poolBalls.js";
 import { floor } from "./experience/objects/floor.js";
 import { createPoolTable } from "./experience/objects/poolTable.js";
 import { cueModel } from "./experience/objects/poolCue.js";
@@ -13,7 +18,7 @@ import { gsap } from "gsap/gsap-core";
 const ballHit = {};
 const indexes = {};
 indexes.angle = 180;
-indexes.force = 500;
+indexes.force = 450;
 
 createPoolTable(gltfLoader, scene, world, tableMaterial, wallMaterial);
 
@@ -40,9 +45,9 @@ const GameState = {
 
 const ScoreState = {
   NO_SCORE: "no_score",
-  SCORE_P1_STRIPE: "pi_stripe",
-  SCORE_P1_FILLED: "p1_filled"
-}
+  SCORE_P1_STRIPE: "p1_stripe",
+  SCORE_P1_FILLED: "p1_filled",
+};
 
 let currentState = GameState.START_SCREEN;
 let currentScore = GameState.NO_SCORE;
@@ -111,13 +116,13 @@ window.addEventListener("keydown", (e) => {
       indexes.angle -= 1;
     }
   }
-  if (
-    e.code === "Enter" &&
-    (currentState === GameState.TWO_PLAYER_BALL_MOVING ||
-      currentState === GameState.SANDBOX_BALL_MOVING)
-  ) {
-    resetGameState();
-  }
+  // if (
+  //   e.code === "Enter" &&
+  //   (currentState === GameState.TWO_PLAYER_BALL_MOVING ||
+  //     currentState === GameState.SANDBOX_BALL_MOVING)
+  // ) {
+  //   reset2PGameState();
+  // }
 });
 
 /**
@@ -178,7 +183,13 @@ const updateCuePosition = () => {
   );
 };
 
-const resetGameState = () => {
+let currentPlayer = "p1";
+let players = {};
+players.p1 = [];
+players.p2 = [];
+console.log(players);
+
+const reset2PGameState = () => {
   const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
   const distanceFromBall = 1.05;
   const whiteBallPosition = poolBalls.whiteBall.body.position;
@@ -193,29 +204,47 @@ const resetGameState = () => {
     y: 0.72,
     z: cueZ,
     onComplete: () => {
-      currentState =
-        currentState === GameState.TWO_PLAYER_BALL_MOVING
-          ? GameState.TWO_PLAYER_IDLE
-          : GameState.SANDBOX_IDLE;
+      currentState = GameState.TWO_PLAYER_IDLE;
+      currentPlayer = currentPlayer === "p1" ? "p2" : "p1";
+    },
+  });
+};
+
+const resetSBGameState = () => {
+  const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
+  const distanceFromBall = 1.05;
+  const whiteBallPosition = poolBalls.whiteBall.body.position;
+  const cueX =
+    whiteBallPosition.x - Math.cos(angleInRadians) * distanceFromBall;
+  const cueZ =
+    whiteBallPosition.z - Math.sin(angleInRadians) * distanceFromBall;
+
+  gsap.to(cueModel.position, {
+    duration: 0.5,
+    x: cueX,
+    y: 0.72,
+    z: cueZ,
+    onComplete: () => {
+      currentState = GameState.TWO_PLAYER_IDLE;
     },
   });
 };
 
 const checkScore = () => {
   if (
-    currentState === GameState.TWO_PLAYER_HIT || 
-    currentState === GameState.TWO_PLAYER_BALL_MOVING &&
-    currentScore === ScoreState.NO_SCORE
+    currentState === GameState.TWO_PLAYER_HIT ||
+    (currentState === GameState.TWO_PLAYER_BALL_MOVING &&
+      currentScore === ScoreState.NO_SCORE)
   ) {
-    console.log("poya")
   }
-}
+};
 
 const isWhiteBallMoving = () => {
   const velocity = poolBalls.whiteBall.body.velocity;
-  return velocity.length() > 0.01;  // Adjust the threshold as needed
+  return velocity.length() > 0.005;
 };
 
+let hasReset = false;
 
 /**
  * Animation Loop
@@ -230,9 +259,9 @@ const tick = () => {
 
   world.step(1 / 60, deltaTime, 3);
 
-  for (const object of objectsToUpdate) {
-    object.mesh.position.copy(object.body.position);
-    object.mesh.quaternion.copy(object.body.quaternion);
+  for (const ball of objectsToUpdate) {
+    ball.mesh.position.copy(ball.body.position);
+    ball.mesh.quaternion.copy(ball.body.quaternion);
   }
 
   if (
@@ -244,9 +273,49 @@ const tick = () => {
 
   if (
     currentState === GameState.TWO_PLAYER_BALL_MOVING &&
-    !isWhiteBallMoving()
+    !isWhiteBallMoving() &&
+    !hasReset
   ) {
-    currentState = GameState.TWO_PLAYER_IDLE;
+    reset2PGameState();
+    hasReset = true;
+  }
+
+  if (currentState !== GameState.TWO_PLAYER_BALL_MOVING) {
+    hasReset = false;
+  }
+
+  for (const [key, ball] of Object.entries(StripedPoolBalls)) {
+    if (ball.mesh.position.y < 0.5) {
+      scene.remove(ball.mesh);
+      world.remove(ball.body);
+      if (!players[currentPlayer].includes(key)) {
+        players[currentPlayer].push(key);
+      }
+      delete StripedPoolBalls[key];
+      const index = objectsToUpdate.indexOf(ball);
+      if (index !== -1) {
+        objectsToUpdate.splice(index, 1);
+
+        console.log(players);
+      }
+    }
+  }
+
+  for (const [key, ball] of Object.entries(FilledPoolBalls)) {
+    if (ball.mesh.position.y < 0.5) {
+      scene.remove(ball.mesh);
+      world.remove(ball.body);
+      if (!players[currentPlayer].includes(key)) {
+        players[currentPlayer].push(key);
+      }
+      delete StripedPoolBalls[key];
+      const index = objectsToUpdate.indexOf(ball);
+      if (index !== -1) {
+        objectsToUpdate.splice(index, 1);
+
+        console.log(players);
+      }
+    }
   }
 
   checkScore();

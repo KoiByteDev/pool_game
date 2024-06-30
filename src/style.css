@@ -1,17 +1,17 @@
-*
-{
+* {
     margin: 0;
     padding: 0;
 }
 
 html,
-body
-{
+body {
     overflow: hidden;
+    font-family: 'Playfair Display SC', serif;
+    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    color: white;
 }
 
-.webgl
-{
+.webgl {
     position: fixed;
     top: 0;
     left: 0;
@@ -19,14 +19,22 @@ body
 }
 
 #overlay {
-    color: white;
     position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    top: 50%;
+    top: 45%;
     left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    animation: fadeIn 2s ease-in-out;
+}
+
+#overlay h1 {
+    font-size: 4em;
+    margin-bottom: 20px;
+    animation: slideDown 2s ease-in-out;
 }
 
 #options {
@@ -36,27 +44,50 @@ body
 
 .button {
     margin: 8px;
-    padding: 8px;
+    padding: 12px 24px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 #playButton {
-    padding-left: 20px;
-    padding-right: 20px;
-    background-color: green;
+    background-color: #28a745;
     border: none;
     border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 #playButton:hover {
-    background-color: greenyellow;
+    background-color: #34d058;
+    transform: scale(1.05);
 }
 
 #sandboxButton {
-    background-color: yellow;
+    background-color: #ffc107;
     border: none;
     border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 #sandboxButton:hover {
-    background-color: lightgoldenrodyellow;
+    background-color: #ffcd39;
+    transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+    }
+    to {
+        transform: translateY(0);
+    }
 }
