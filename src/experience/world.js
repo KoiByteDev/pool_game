@@ -28,7 +28,7 @@ const ballBallContactMaterial = new CANNON.ContactMaterial(
     ballMaterial,
     {
         friction: 0.15,
-        restitution: 0.9,
+        restitution: 0.975,
     }
 );
 world.addContactMaterial(ballBallContactMaterial);

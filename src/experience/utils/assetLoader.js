@@ -1,10 +1,22 @@
 import * as THREE from 'three'
 import { TextureLoader } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import gsap from 'gsap';
+import { overlayMaterial } from './overlay';
+
+const loadingManager = new THREE.LoadingManager(
+  () => {
+    gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
+    console.log('loaded')
+  },
+  () => {
+    console.log('loading')
+  }
+)
 
 // Loaders
-const gltfLoader = new GLTFLoader();
-const textureLoader = new TextureLoader();
+const gltfLoader = new GLTFLoader(loadingManager);
+const textureLoader = new TextureLoader(loadingManager);
 
 const ballTextures = {}
 ballTextures.yellowFilled = textureLoader.load('./textures/balls/yellowFilled.jpg')
@@ -52,4 +64,11 @@ ballTextures.maroonStriped.colorSpace = THREE.SRGBColorSpace;
 ballTextures.greenFilled = textureLoader.load('./textures/balls/greenFilled.jpg')
 ballTextures.greenFilled.colorSpace = THREE.SRGBColorSpace;
 
-export { gltfLoader, textureLoader, ballTextures };
+const floorTextures = {}
+floorTextures.floorAlphaTexture = textureLoader.load("./textures/floor/alpha.jpg");
+floorTextures.floorARMTexture = textureLoader.load("./textures/floor/wfd/wfd_arm.jpg");
+floorTextures.floorColorTexture = textureLoader.load("./textures/floor/wfd/wfd_diff.jpg");
+floorTextures.floorDispTexture = textureLoader.load("./textures/floor/wfd/wfd_disp.jpg");
+floorTextures.floorNormalTexture = textureLoader.load("./textures/floor/wfd/wfd_nor.jpg");
+
+export { gltfLoader, textureLoader, ballTextures, floorTextures };

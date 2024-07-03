@@ -1,5 +1,5 @@
 import { scene } from "../experience";
-import { gltfLoader } from "../utils/utils";
+import { gltfLoader } from "../utils/assetLoader";
 
 let cueModel;
 

@@ -1,45 +1,40 @@
 import * as THREE from "three";
-import { textureLoader } from "../utils/utils";
+import { floorTextures } from "../utils/assetLoader";
+import { textureLoader } from "../utils/assetLoader";
 import { scene } from "../experience";
 
-const floorAlphaTexture = textureLoader.load("./textures/floor/alpha.jpg");
-const floorARMTexture = textureLoader.load("./textures/floor/wfd/wfd_arm.jpg");
-const floorColorTexture = textureLoader.load("./textures/floor/wfd/wfd_diff.jpg");
-const floorDispTexture = textureLoader.load("./textures/floor/wfd/wfd_disp.jpg");
-const floorNormalTexture = textureLoader.load("./textures/floor/wfd/wfd_nor.jpg");
+floorTextures.floorColorTexture.colorSpace = THREE.SRGBColorSpace;
 
-floorColorTexture.colorSpace = THREE.SRGBColorSpace;
+floorTextures.floorColorTexture.repeat.set(2, 2);
+floorTextures.floorARMTexture.repeat.set(2, 2);
+floorTextures.floorNormalTexture.repeat.set(2, 2);
+floorTextures.floorDispTexture.repeat.set(2, 2);
 
-floorColorTexture.repeat.set(2, 2);
-floorARMTexture.repeat.set(2, 2);
-floorNormalTexture.repeat.set(2, 2);
-floorDispTexture.repeat.set(2, 2);
+floorTextures.floorColorTexture.wrapS = THREE.RepeatWrapping;
+floorTextures.floorARMTexture.wrapS = THREE.RepeatWrapping;
+floorTextures.floorNormalTexture.wrapS = THREE.RepeatWrapping;
+floorTextures.floorDispTexture.wrapS = THREE.RepeatWrapping;
 
-floorColorTexture.wrapS = THREE.RepeatWrapping;
-floorARMTexture.wrapS = THREE.RepeatWrapping;
-floorNormalTexture.wrapS = THREE.RepeatWrapping;
-floorDispTexture.wrapS = THREE.RepeatWrapping;
+floorTextures.floorColorTexture.wrapT = THREE.RepeatWrapping;
+floorTextures.floorARMTexture.wrapT = THREE.RepeatWrapping;
+floorTextures.floorNormalTexture.wrapT = THREE.RepeatWrapping;
+floorTextures.floorDispTexture.wrapT = THREE.RepeatWrapping;
 
-floorColorTexture.wrapT = THREE.RepeatWrapping;
-floorARMTexture.wrapT = THREE.RepeatWrapping;
-floorNormalTexture.wrapT = THREE.RepeatWrapping;
-floorDispTexture.wrapT = THREE.RepeatWrapping;
-
-floorColorTexture.anisotropy = 8;
-floorARMTexture.anisotropy = 8;
-floorNormalTexture.anisotropy = 8;
-floorDispTexture.anisotropy = 8;
+floorTextures.floorColorTexture.anisotropy = 8;
+floorTextures.floorARMTexture.anisotropy = 8;
+floorTextures.floorNormalTexture.anisotropy = 8;
+floorTextures.floorDispTexture.anisotropy = 8;
 
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(4, 4, 100, 100),
   new THREE.MeshStandardMaterial({
-    alphaMap: floorAlphaTexture,
+    alphaMap: floorTextures.floorAlphaTexture,
     transparent: true,
-    map: floorColorTexture,
-    aoMap: floorARMTexture,
-    roughnessMap: floorARMTexture,
-    metalnessMap: floorARMTexture,
-    displacementMap: floorDispTexture,
+    map: floorTextures.floorColorTexture,
+    aoMap: floorTextures.floorARMTexture,
+    roughnessMap: floorTextures.floorARMTexture,
+    metalnessMap: floorTextures.floorARMTexture,
+    displacementMap: floorTextures.floorDispTexture,
     displacementScale: 0.025,
     displacementBias: -0.025,
   }),
@@ -47,4 +42,5 @@ const floor = new THREE.Mesh(
 floor.receiveShadow = true
 floor.rotation.x = -Math.PI / 2;
 floor.rotation.z = Math.PI / 2;
-export { floor };
+scene.add(floor)
+export { floor }

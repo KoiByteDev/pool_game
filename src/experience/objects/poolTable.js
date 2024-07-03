@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import CANNON from "cannon";
+import { loadPoolBalls, poolBalls } from "./poolBalls";
 
 const createPoolTable = (
   gltfLoader,
@@ -177,6 +178,8 @@ const createPoolTable = (
     // );
     // wallMesh6.position.copy(wall6.position);
     // scene.add(wallMesh6);
+
+    loadPoolBalls();
   });
 };
 

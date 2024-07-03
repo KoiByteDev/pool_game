@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import GUI from "lil-gui";
 import CANNON from "cannon";
-import { gltfLoader, textureLoader } from "./experience/utils/utils.js";
+import { gltfLoader, textureLoader } from "./experience/utils/assetLoader.js";
 import { scene, camera, controls, renderer } from "./experience/experience.js";
 import { wallMaterial, tableMaterial, world } from "./experience/world.js";
 import {
@@ -10,10 +10,13 @@ import {
   StripedPoolBalls,
   FilledPoolBalls,
 } from "./experience/objects/poolBalls.js";
-import { floor } from "./experience/objects/floor.js";
 import { createPoolTable } from "./experience/objects/poolTable.js";
 import { cueModel } from "./experience/objects/poolCue.js";
 import { gsap } from "gsap/gsap-core";
+import { GameState, ScoreState } from "./experience/states.js";
+import { floor } from './experience/objects/floor.js'
+
+console.log(floor.position)
 
 const ballHit = {};
 const indexes = {};
@@ -30,37 +33,39 @@ const resetWhite = () => {
 
 ballHit.resetWhite = resetWhite;
 
-/**
- * Game States
- */
-const GameState = {
-  START_SCREEN: "start_screen",
-  TWO_PLAYER_IDLE: "two_player_idle",
-  TWO_PLAYER_HIT: "two_player_hit",
-  TWO_PLAYER_BALL_MOVING: "two_player_ball_moving",
-  SANDBOX_IDLE: "sandbox_idle",
-  SANDBOX_HIT: "sandbox_hit",
-  SANDBOX_BALL_MOVING: "sandbox_ball_moving",
-};
-
-const ScoreState = {
-  NO_SCORE: "no_score",
-  SCORE_P1_STRIPE: "p1_stripe",
-  SCORE_P1_FILLED: "p1_filled",
-};
-
 let currentState = GameState.START_SCREEN;
 let currentScore = GameState.NO_SCORE;
 
 /**
  * Event Listeners
  */
-window.addEventListener("keypress", (e) => {
+let oscillating = false;
+let oscillationInterval;
+
+window.addEventListener("keydown", (e) => {
   if (
     (currentState === GameState.TWO_PLAYER_IDLE ||
       currentState === GameState.SANDBOX_IDLE) &&
-    e.code === "Space"
+    e.code === "Space" && !oscillating
   ) {
+    oscillating = true;
+    let direction = 1;
+
+    oscillationInterval = setInterval(() => {
+      indexes.force += direction * 10;
+      if (indexes.force >= 1000 || indexes.force <= 0) {
+        direction *= -1;
+      }
+      console.log(indexes.force);
+    }, 100);
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  if (e.code === "Space" && oscillating) {
+    clearInterval(oscillationInterval);
+    oscillating = false;
+
     const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
     currentState =
       currentState === GameState.TWO_PLAYER_IDLE
@@ -116,13 +121,6 @@ window.addEventListener("keydown", (e) => {
       indexes.angle -= 1;
     }
   }
-  // if (
-  //   e.code === "Enter" &&
-  //   (currentState === GameState.TWO_PLAYER_BALL_MOVING ||
-  //     currentState === GameState.SANDBOX_BALL_MOVING)
-  // ) {
-  //   reset2PGameState();
-  // }
 });
 
 /**
@@ -135,12 +133,14 @@ if (currentState === GameState.SANDBOX_IDLE) {
   gui.add(indexes, "force").min(10).max(1000).step(10);
 }
 
-scene.add(floor);
-
 /**
  * UI Buttons
  */
 const overlay = document.getElementById("overlay");
+const title = document.getElementById("title");
+const sandboxButton = document.getElementById("sandboxButton");
+const playButton = document.getElementById("playButton");
+
 const updateOverlayVisibility = () => {
   if (currentState === GameState.START_SCREEN) {
     overlay.style.display = "flex";
@@ -149,17 +149,28 @@ const updateOverlayVisibility = () => {
   }
 };
 
-const playButton = document.getElementById("playButton");
-const sandboxButton = document.getElementById("sandboxButton");
+const handleButtonClick = (state) => {
+  title.classList.add("fade-out");
+  title.classList.add("slide-up")
+  sandboxButton.classList.add("slide-out-left");
+  playButton.classList.add("slide-out-right");
+
+  setTimeout(() => {
+    currentState = state;
+    updateOverlayVisibility();
+  }, 1000);
+
+  setTimeout(() => {
+    showPlayerTurnMessage(`player 1's turn`);
+  }, 1250);
+};
 
 playButton.addEventListener("click", () => {
-  currentState = GameState.TWO_PLAYER_IDLE;
-  updateOverlayVisibility();
+  handleButtonClick(GameState.TWO_PLAYER_IDLE);
 });
 
 sandboxButton.addEventListener("click", () => {
-  currentState = GameState.SANDBOX_IDLE;
-  updateOverlayVisibility();
+  handleButtonClick(GameState.SANDBOX_IDLE);
 });
 
 /**
@@ -185,11 +196,11 @@ const updateCuePosition = () => {
 
 let currentPlayer = "p1";
 let players = {};
-players.p1 = [];
-players.p2 = [];
+players.p1 = { balls: [], group: null };
+players.p2 = { balls: [], group: null };
 console.log(players);
 
-const reset2PGameState = () => {
+const reset2PGameState = (scored) => {
   const angleInRadians = THREE.MathUtils.degToRad(indexes.angle);
   const distanceFromBall = 1.05;
   const whiteBallPosition = poolBalls.whiteBall.body.position;
@@ -205,7 +216,10 @@ const reset2PGameState = () => {
     z: cueZ,
     onComplete: () => {
       currentState = GameState.TWO_PLAYER_IDLE;
-      currentPlayer = currentPlayer === "p1" ? "p2" : "p1";
+      if (!scored) {
+        currentPlayer = currentPlayer === "p1" ? "p2" : "p1";
+      }
+      showPlayerTurnMessage(`player ${currentPlayer === "p1" ? "1" : "2"}'s turn`);
     },
   });
 };
@@ -231,11 +245,54 @@ const resetSBGameState = () => {
 };
 
 const checkScore = () => {
+  let scored = false;
+  let scoredBallType = null;
+
+  for (const [key, ball] of Object.entries(StripedPoolBalls)) {
+    if (ball.mesh.position.y < 0.5) {
+      scene.remove(ball.mesh);
+      world.remove(ball.body);
+      if (!players[currentPlayer].balls.includes(key)) {
+        players[currentPlayer].balls.push(key);
+      }
+      delete StripedPoolBalls[key];
+      const index = objectsToUpdate.indexOf(ball);
+      if (index !== -1) {
+        objectsToUpdate.splice(index, 1);
+      }
+      scored = true;
+      scoredBallType = "striped";
+    }
+  }
+
+  for (const [key, ball] of Object.entries(FilledPoolBalls)) {
+    if (ball.mesh.position.y < 0.5) {
+      scene.remove(ball.mesh);
+      world.remove(ball.body);
+      if (!players[currentPlayer].balls.includes(key)) {
+        players[currentPlayer].balls.push(key);
+      }
+      delete FilledPoolBalls[key];
+      const index = objectsToUpdate.indexOf(ball);
+      if (index !== -1) {
+        objectsToUpdate.splice(index, 1);
+      }
+      scored = true;
+      scoredBallType = "filled";
+    }
+  }
+
+  if (scored && players[currentPlayer].group === null) {
+    players[currentPlayer].group = scoredBallType;
+    const otherPlayer = currentPlayer === "p1" ? "p2" : "p1";
+    players[otherPlayer].group = scoredBallType === "striped" ? "filled" : "striped";
+  }
+
   if (
-    currentState === GameState.TWO_PLAYER_HIT ||
-    (currentState === GameState.TWO_PLAYER_BALL_MOVING &&
-      currentScore === ScoreState.NO_SCORE)
+    currentState === GameState.TWO_PLAYER_BALL_MOVING &&
+    !isWhiteBallMoving()
   ) {
+    reset2PGameState(scored);
   }
 };
 
@@ -244,11 +301,27 @@ const isWhiteBallMoving = () => {
   return velocity.length() > 0.005;
 };
 
-let hasReset = false;
+const showPlayerTurnMessage = (message) => {
+  const playerTurnMessage = document.getElementById("player-turn-message");
+  playerTurnMessage.innerText = message;
+
+  playerTurnMessage.classList.remove("slide-out");
+  playerTurnMessage.classList.add("slide-in");
+
+  setTimeout(() => {
+    playerTurnMessage.classList.remove("slide-in");
+    playerTurnMessage.classList.add("slide-out");
+  }, 1500);
+
+  console.log(playerTurnMessage)
+}
 
 /**
  * Animation Loop
  */
+
+let hasReset = false;
+
 const clock = new THREE.Clock();
 let previousTime = 0;
 
@@ -276,49 +349,13 @@ const tick = () => {
     !isWhiteBallMoving() &&
     !hasReset
   ) {
-    reset2PGameState();
+    checkScore();
     hasReset = true;
   }
 
   if (currentState !== GameState.TWO_PLAYER_BALL_MOVING) {
     hasReset = false;
   }
-
-  for (const [key, ball] of Object.entries(StripedPoolBalls)) {
-    if (ball.mesh.position.y < 0.5) {
-      scene.remove(ball.mesh);
-      world.remove(ball.body);
-      if (!players[currentPlayer].includes(key)) {
-        players[currentPlayer].push(key);
-      }
-      delete StripedPoolBalls[key];
-      const index = objectsToUpdate.indexOf(ball);
-      if (index !== -1) {
-        objectsToUpdate.splice(index, 1);
-
-        console.log(players);
-      }
-    }
-  }
-
-  for (const [key, ball] of Object.entries(FilledPoolBalls)) {
-    if (ball.mesh.position.y < 0.5) {
-      scene.remove(ball.mesh);
-      world.remove(ball.body);
-      if (!players[currentPlayer].includes(key)) {
-        players[currentPlayer].push(key);
-      }
-      delete StripedPoolBalls[key];
-      const index = objectsToUpdate.indexOf(ball);
-      if (index !== -1) {
-        objectsToUpdate.splice(index, 1);
-
-        console.log(players);
-      }
-    }
-  }
-
-  checkScore();
 
   controls.update();
   renderer.render(scene, camera);
